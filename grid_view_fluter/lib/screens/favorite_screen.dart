@@ -2,21 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:grid_view_fluter/data/home_data.dart';
 import 'package:grid_view_fluter/models/home.dart';
 import 'package:grid_view_fluter/screens/detail_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class FavoriteScreen extends StatefulWidget {
+  const FavoriteScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _FavoriteScreenState extends State<FavoriteScreen> {
+  List<Home> _favoriteHomes = [];
+
+  Future<void> _loadFavoriteHomes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> favoriteHomesNames =
+        prefs.getStringList('favoriteHomes') ?? [];
+
+    setState(() {
+      _favoriteHomes = homeList
+          .where((home) => favoriteHomesNames.contains(home.name))
+          .toList();
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loadFavoriteHomes();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
+      appBar: AppBar(title: const Text('Favorite')),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(
@@ -27,14 +47,16 @@ class _HomeScreenState extends State<HomeScreen> {
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
               padding: const EdgeInsets.all(8),
-              itemCount: homeList.length,
+              itemCount: _favoriteHomes.length,
               itemBuilder: (context, index) {
-                Home varHome = homeList[index];
+                Home varHome = _favoriteHomes[index];
                 return InkWell(
                   onTap: () {
                     Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => DetailScreen(varHome: varHome)));
-                    
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                DetailScreen(varHome: varHome)));
                   },
                   child: Card(
                       shape: RoundedRectangleBorder(
